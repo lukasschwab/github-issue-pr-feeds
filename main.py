@@ -1,4 +1,5 @@
 import json
+from typing import List
 from flask import Request, Response
 import functions_framework
 import requests
@@ -14,7 +15,7 @@ def user_to_author(user: dict) -> jsonfeed.Author:
     )
 
 
-def item(issue: dict) -> jsonfeed.Item:
+def to_item(issue: dict) -> jsonfeed.Item:
     return jsonfeed.Item(
         id=issue.get("number"),
         url=issue.get("url"),
@@ -28,6 +29,18 @@ def item(issue: dict) -> jsonfeed.Item:
     )
 
 
+def issues(username, repository) -> List[jsonfeed.Item]:
+    # Only open issues.
+    resp = requests.get(f"https://api.github.com/repos/{username}/{repository}/issues")
+    return [to_item(issue) for issue in resp.json()]
+    
+
+def pulls(username, repository) -> List[jsonfeed.Item]:
+    # Only open pull requests.
+    resp = requests.get(f"https://api.github.com/repos/{username}/{repository}/pulls")
+    return [to_item(pull) for pull in resp.json()]
+
+
 @functions_framework.http
 def main(request: Request):
     print(json.dumps(dict(
@@ -38,12 +51,11 @@ def main(request: Request):
     )))
     username = request.args["username"]
     repository = request.args["repository"]
-    resp = requests.get(f"https://api.github.com/repos/{username}/{repository}/issues")
     feed = jsonfeed.Feed(
         title=f"GitHub Issues: {username}/{repository}",
         home_page_url=f"https://github.com/{username}/{repository}",
         feed_url=request.url,
         icon="https://github.githubassets.com/favicons/favicon.svg",
-        items=[item(issue) for issue in resp.json()]
+        items=pulls(username, repository)+issues(username, repository)
     )
     return Response(feed.to_json(), content_type='application/json; charset=utf-8')
