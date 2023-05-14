@@ -17,7 +17,7 @@ def user_to_author(user: dict) -> jsonfeed.Author:
 
 def to_item(issue: dict) -> jsonfeed.Item:
     return jsonfeed.Item(
-        id=issue.get("number"),
+        id=str(issue.get("number")),
         url=issue.get("url"),
         title=issue.get("title"),
         content_text=issue.get("body"),
