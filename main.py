@@ -10,7 +10,7 @@ import markdown
 def user_to_author(user: dict) -> jsonfeed.Author:
     return jsonfeed.Author(
         name=user.get("login"),
-        url=user.get("url"),
+        url=user.get("html_url"),
         avatar=user.get("avatar_url")
     )
 
@@ -18,7 +18,7 @@ def user_to_author(user: dict) -> jsonfeed.Author:
 def to_item(issue: dict) -> jsonfeed.Item:
     return jsonfeed.Item(
         id=str(issue.get("number")),
-        url=issue.get("url"),
+        url=issue.get("html_url"),
         title=issue.get("title"),
         content_text=issue.get("body"),
         content_html=markdown.markdown(issue.get("body")),
